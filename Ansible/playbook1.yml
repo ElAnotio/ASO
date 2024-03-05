@@ -1,24 +1,25 @@
-- name: Create Proxmox VM
-  hosts: localhost
-  gather_facts: false
+- name: Create Proxmox VM  # Define el nombre de la tarea que creará una VM en Proxmox.
+  hosts: localhost  # Especifica que las tareas se ejecutarán en el localhost.
+  gather_facts: false  # Desactiva la recopilación de hechos sobre el sistema antes de ejecutar las tareas.
 
-  tasks:
-   - community.general.proxmox_kvm:
-      api_user: administrador@pam
-      api_password: marisma.23
-      api_host: 10.4.0.151
-      name: "{{ item }}"
-      node: marisma001
-      sata:
-        sata0: 'local-lvm:32,format=raw,cache=writeback'
-      memory: 4096
-      cores: 2
-      net:
-        net0: 'e1000,bridge=vmbr0'
-      ide:
-        ide1: 'NAS:iso/linuxmint-21.2-cinnamon-64bit.iso,media=cdrom'
-      ostype: l26
-      pool: 2ASIR
+  tasks:  # Define una lista de tareas.
 
-     loop:
-      "{{ name.split(',') }}"
+   - community.general.proxmox_kvm:  # Utiliza el módulo 'proxmox_kvm' de la comunidad general de Ansible Galaxy para gestionar VMs en Proxmox.
+      api_user: administrador@pam  # Especifica el usuario para acceder al API de Proxmox.
+      api_password: marisma.23  # Especifica la contraseña para acceder al API de Proxmox.
+      api_host: 10.4.0.151  # Especifica la dirección IP del host de Proxmox.
+      name: "{{ item }}"  # Define el nombre de la VM, utiliza el valor de cada elemento del bucle.
+      node: marisma001  # Especifica el nodo de Proxmox en el que se creará la VM.
+      sata:  # Configura el almacenamiento para la VM.
+        sata0: 'local-lvm:32,format=raw,cache=writeback'  # Define un disco SATA con ciertas características.
+      memory: 4096  # Especifica la cantidad de memoria (en MB) asignada a la VM.
+      cores: 2  # Especifica la cantidad de núcleos de CPU asignados a la VM.
+      net:  # Configura la red para la VM.
+        net0: 'e1000,bridge=vmbr0'  # Define una interfaz de red con un modelo y un puente específicos.
+      ide:  # Configura los dispositivos IDE para la VM.
+        ide1: 'NAS:iso/linuxmint-21.2-cinnamon-64bit.iso,media=cdrom'  # Define un dispositivo IDE con un ISO montado como CD-ROM.
+      ostype: l26  # Especifica el tipo de sistema operativo de la VM.
+      pool: 2ASIR  # Especifica el pool donde se creará la VM.
+
+     loop:  # Inicia un bucle sobre una lista.
+      "{{ name.split(',') }}"  # Divide una cadena en una lista utilizando comas como separadores, pero 'name' no está definido aquí, por lo que esta línea parece incorrecta.
