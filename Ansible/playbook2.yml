@@ -1,0 +1,51 @@
+- name: setup Mysql with medium_db db and remote login  # Nombre de la tarea principal, configurando MySQL con una base de datos medium_db y acceso remoto.
+  remote_user: linux  # Se establece el usuario remoto al que se conectará Ansible, en este caso, 'linux'.
+  become: yes  # Indica que se debe convertir en el usuario root antes de ejecutar las tareas.
+  hosts: proyectoansible  # Especifica en qué hosts se ejecutarán estas tareas, en este caso, en el grupo llamado 'proyectoansible'.
+  tasks:  # Comienza la lista de tareas a realizar.
+
+    - name: Installing Mysql and dependencies  # Nombre de la tarea: Instalando MySQL y sus dependencias.
+      package:  # Utiliza el módulo 'package' para instalar paquetes.
+        name: "{{item}}"  # El nombre del paquete a instalar, con el valor de la variable 'item'.
+        state: present  # Estado deseado del paquete (en este caso, presente, es decir, debe estar instalado).
+        update_cache: yes  # Actualiza la caché de paquetes antes de instalarlos.
+      loop:  # Itera sobre los elementos de la lista que le sigue.
+        - mysql-server  # Lista de paquetes a instalar.
+        - mysql-client
+        - python3-mysqldb
+        - libmysqlclient-dev
+
+    - name: start and enable mysql service  # Nombre de la tarea: Inicia y habilita el servicio de MySQL.
+      service:  # Utiliza el módulo 'service' para gestionar servicios.
+        name: mysql  # Nombre del servicio a gestionar (en este caso, MySQL).
+        state: started  # Estado en el que se desea que esté el servicio (iniciado).
+        enabled: yes  # Indica si el servicio debe estar habilitado para iniciar en el arranque del sistema.
+
+    - name: creating mysql user (medium_post)  # Nombre de la tarea: Creando un usuario de MySQL (medium_post).
+      mysql_user:  # Utiliza el módulo 'mysql_user' para gestionar usuarios de MySQL.
+        name: usuario  # Nombre del usuario a crear.
+        password: 1234  # Contraseña del usuario.
+        priv: '*.*:ALL'  # Privilegios que se le otorgan al usuario (en este caso, todos los privilegios en todas las bases de datos).
+        host: '%'  # Host desde el cual el usuario puede conectarse (en este caso, desde cualquier host).
+        state: present  # Estado deseado del usuario (en este caso, presente, es decir, el usuario debe estar creado).
+
+    - name: creating medium_db  # Nombre de la tarea: Creando la base de datos medium_db.
+      mysql_db:  # Utiliza el módulo 'mysql_db' para gestionar bases de datos de MySQL.
+        name: medium_db  # Nombre de la base de datos a crear.
+        state: present  # Estado deseado de la base de datos (en este caso, presente, es decir, la base de datos debe estar creada).
+
+    - name: Enable remote login to mysql  # Nombre de la tarea: Habilitando el acceso remoto a MySQL.
+      lineinfile:  # Utiliza el módulo 'lineinfile' para editar archivos de texto.
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf  # Ruta del archivo a modificar.
+        regexp: '^bind-address'  # Expresión regular para buscar una línea específica en el archivo.
+        line: 'bind-address = 0.0.0.0'  # Línea que se añadirá al archivo.
+        backup: yes  # Indica si se debe realizar una copia de seguridad del archivo antes de modificarlo.
+      notify:  # Lista de tareas a notificar cuando esta tarea se complete.
+        - Restart mysql  # Notifica a la tarea llamada 'Restart mysql'.
+
+  handlers:  # Comienza la lista de handlers.
+    - name: Restart mysql  # Nombre del handler: Reiniciar MySQL.
+      service:  # Utiliza el módulo 'service' para gestionar servicios.
+        name: mysql  # Nombre del servicio a gestionar (en este caso, MySQL).
+        state: restarted  # Estado en el que se desea que esté el servicio (reiniciado).
+
