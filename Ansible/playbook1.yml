@@ -1,0 +1,24 @@
+- name: Create Proxmox VM
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+   - community.general.proxmox_kvm:
+      api_user: administrador@pam
+      api_password: marisma.23
+      api_host: 10.4.0.151
+      name: "{{ item }}"
+      node: marisma001
+      sata:
+        sata0: 'local-lvm:32,format=raw,cache=writeback'
+      memory: 4096
+      cores: 2
+      net:
+        net0: 'e1000,bridge=vmbr0'
+      ide:
+        ide1: 'NAS:iso/linuxmint-21.2-cinnamon-64bit.iso,media=cdrom'
+      ostype: l26
+      pool: 2ASIR
+
+     loop:
+      "{{ name.split(',') }}"
